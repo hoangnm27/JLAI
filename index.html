@@ -6,7 +6,7 @@
     <title>AI Test Case Generator</title>
     <script>
         let threadId = null;  // Lưu thread_id để dùng lại
-        const OPENAI_API_KEY = "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";
+        const OPENAI_API_KEY = "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";
         const ASSISTANT_ID = "asst_cfoXdMTHow5kPmrYEtNtD2Hu";
 
         // 📌 Tạo thread duy nhất nếu chưa có
@@ -63,7 +63,7 @@
                         "Content-Type": "application/json",
 						"OpenAI-Beta": "assistants=v2"
                     },
-                    body: JSON.stringify({ assistant_id: asst_cfoXdMTHow5kPmrYEtNtD2Hu })
+                    body: JSON.stringify({ assistant_id: ASSISTANT_ID })
                 });
 
                 const runData = await runRes.json();
