@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test Case Generator</title>
+    <script>
+        let threadId = null;  // Lưu thread_id để dùng lại
+        const OPENAI_API_KEY = "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";
+        const ASSISTANT_ID = "asst_cfoXdMTHow5kPmrYEtNtD2Hu";
+
+        // 📌 Tạo thread duy nhất nếu chưa có
+        async function createThread() {
+            try {
+                const response = await fetch("https://api.openai.com/v1/threads", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                        "Content-Type": "application/json",
+						"OpenAI-Beta": "assistants=v2"
+                    }
+                });
+
+                const data = await response.json();
+                if (data.id) {
+                    threadId = data.id;
+                    console.log("✅ Thread ID:", threadId);
+                } else {
+                    console.error("❌ Can not create the thread");
+                }
+            } catch (error) {
+                console.error("❌ Error of createThread", error);
+            }
+        }
+
+        async function generateTestCase() {
+            const prompt = document.getElementById("prompt").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "⏳ In Progress...";
+
+            // 📌 Nếu chưa có thread, tạo thread trước
+            if (!threadId) {
+                await createThread();
+            }
+
+            try {
+                // 📌 Gửi prompt vào thread
+                await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                        "Content-Type": "application/json",
+						"OpenAI-Beta": "assistants=v2"
+                    },
+                    body: JSON.stringify({ role: "user", content: prompt })
+                });
+
+                // 📌 Chạy thread để AI xử lý
+                const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                        "Content-Type": "application/json",
+						"OpenAI-Beta": "assistants=v2"
+                    },
+                    body: JSON.stringify({ assistant_id: ASSISTANT_ID })
+                });
+
+                const runData = await runRes.json();
+                if (!runData.id) throw new Error("❌ run_id NA");
+                const runId = runData.id;
+                console.log("✅ Run ID:", runId);
+
+                // 📌 Chờ OpenAI xử lý
+                let status = "";
+                do {
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // Chờ 5s
+                    const checkRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+                        method: "GET",
+                        headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`,
+									"OpenAI-Beta": "assistants=v2"}
+                    });
+
+                    const checkData = await checkRes.json();
+                    status = checkData.status;
+                    console.log("🔄 Status:", status);
+                } while (status !== "completed");
+
+                // 📌 Lấy tất cả messages từ thread
+                const messageRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`,
+								"OpenAI-Beta": "assistants=v2"}
+                });
+
+                const messageData = await messageRes.json();
+                console.log("📌 OpenAI Messages:", JSON.stringify(messageData, null, 2));
+
+                if (!messageData.data || messageData.data.length === 0) throw new Error("❌ No test case created");
+
+                // ✅ Lấy message có `run_id` trùng với lần chạy gần nhất
+                const correctMessage = messageData.data.find(msg => msg.run_id === runId);
+
+                if (!correctMessage) throw new Error("❌ No message matched the run_id");
+
+                // 📌 Lấy test case từ message đúng
+                const extractedText = correctMessage.content
+                    .map(item => item.text?.value || "")
+                    .filter(text => text.trim() !== "")
+                    .join("\n");
+
+                console.log("✅ Test Case:", extractedText);
+                resultDiv.innerHTML = `<h3>✅ Test Case:</h3><pre>${extractedText}</pre>`;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<h3>❌ Error:</h3> ${error.message}`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>AI Test Case Generator</h1>
+    <textarea id="prompt" placeholder="Input Promt..."></textarea>
+    <button onclick="generateTestCase()">Generate Test Cases</button>
+    <h2>Output:</h2>
+    <div id="result" style="white-space: pre-wrap; border: 1px solid #ddd; padding: 10px;"></div>
+</body>
+</html>
