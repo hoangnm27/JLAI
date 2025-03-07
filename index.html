@@ -11,12 +11,12 @@
         const ASSISTANT_ID = "asst_cfoXdMTHow5kPmrYEtNtD2Hu";
 		
 		// 📌 Nhập API key lần đầu
-		async function setApiKey() {
+		if (!apiKey) {
         apiKey = prompt("Please input API key:");
-        if (!apiKey) {
-            alert("API Key is required!");
+        if (apiKey) {
+			localStorage.setItem("openai_api_key", apiKey);  // Lưu vào localStorage
         } else {
-            localStorage.setItem("openai_api_key", apiKey);  // Lưu vào localStorage
+            alert("API Key is required!");
         }
     }
 
