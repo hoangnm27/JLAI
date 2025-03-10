@@ -17,13 +17,15 @@
 			white-space: pre-wrap; /* Tự động xuống dòng */
 			border: 1px solid #ddd;
 			padding: 15px;
+			width: 100%; /* Chiếm hết chiều rộng màn hình */
 			max-width: 100%; /* Không cho tràn ra ngoài */
-			overflow-x: auto; /* Nếu quá dài, cho cuộn ngang */
+			overflow-x: hidden; /* Không có thanh cuộn ngang */
 			word-wrap: break-word; /* Ngắt từ khi quá dài */
 			background: #f8f9fa; /* Nền nhẹ giúp dễ nhìn */
 			border-radius: 8px; /* Bo góc mềm mại */
 			font-family: monospace; /* Font code cho dễ đọc */
 		}
+
     </style>
 </head>
 <body>
@@ -178,7 +180,7 @@
                     .join("\n");
 
                 console.log(`✅ Test Case (Assistant ${tab}):`, extractedText);
-                resultDiv.innerHTML = `<h3>✅ Enjoy:</h3><pre>${extractedText}</pre>`;
+                resultDiv.innerHTML = `<h3>✅ Enjoy:</h3><pre style="white-space: pre-wrap; word-wrap: break-word;">${extractedText}</pre>`;
 
             } catch (error) {
                 resultDiv.innerHTML = `<h3>❌ Error:</h3> ${error.message}`;
