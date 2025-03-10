@@ -41,7 +41,7 @@
     <!-- Content for Assistant 1 -->
     <div class="content active" id="content1">
         <textarea id="prompt1" placeholder="Input promt here..."></textarea>
-        <button onclick="generateTestCase(1)">Please!!!!</button>
+        <button onclick="generateTestCase(1)">Click me now!!!!</button>
         <h2>Result:</h2>
         <div id="result1" style="white-space: pre-wrap; border: 1px solid #ddd; padding: 10px;"></div>
     </div>
@@ -53,6 +53,10 @@
         <h2>Result:</h2>
         <div id="result2" style="white-space: pre-wrap; border: 1px solid #ddd; padding: 10px;"></div>
     </div>
+	
+	<div id="loading-icon" style="display: none; text-align: center; margin-top: 10px;">
+    <img src="https://i.gifer.com/VAyR.gif" width="50" alt="Loading...">
+	</div>
 
     <script>
         let threadId1 = null;
@@ -110,7 +114,11 @@
         async function generateTestCase(tab) {
             const prompt = document.getElementById(`prompt${tab}`).value;
             const resultDiv = document.getElementById(`result${tab}`);
-            resultDiv.innerHTML = "⏳ In progress...";
+			const loadingIcon = document.getElementById("loading-icon");
+
+            resultDiv.innerHTML = "";
+			loadingIcon.style.display = "block"; // Hiện icon loading
+
 
             let threadId = tab === 1 ? threadId1 : threadId2;
             let assistantId = tab === 1 ? ASSISTANT_ID_1 : ASSISTANT_ID_2;
@@ -184,7 +192,9 @@
 
             } catch (error) {
                 resultDiv.innerHTML = `<h3>❌ Error:</h3> ${error.message}`;
-            }
+            } finally {
+				loadingIcon.style.display = "none"; // Ẩn icon loading sau khi có kết quả
+			}
         }
     </script>
 </body>
